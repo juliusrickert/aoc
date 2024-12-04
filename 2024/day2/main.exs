@@ -17,6 +17,17 @@ defmodule Day2 do
       |> Enum.count(fn x -> x == true end)
 
     IO.puts("part1: #{is_safe}")
+
+    is_safe_without_one =
+      input
+      |> Enum.map(&safe_without_one?/1)
+      |> Enum.count(fn x -> x == true end)
+
+    IO.puts("part2: #{is_safe_without_one}")
+  end
+
+  defp safe_without_one?(list) do
+    Enum.any?(list_to_missing_combinations(list), &safe?/1)
   end
 
   defp safe?(list) do
@@ -40,6 +51,12 @@ defmodule Day2 do
       Enum.chunk_every(list, 2, 1, :discard) |> Enum.all?(fn [left, right] -> left > right end)
 
     increasing or decreasing
+  end
+
+  defp list_to_missing_combinations(list) do
+    for {_, index} <- Enum.with_index(list) do
+      List.delete_at(list, index)
+    end
   end
 end
 
