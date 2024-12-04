@@ -1,17 +1,20 @@
 defmodule Day4 do
   def run do
-    input =
+    input_matrix =
       IO.read(:stdio, :eof)
       |> String.split("\n", trim: true)
+
+    # Add vertical buffer.
+    matrix1 =
+      input_matrix
       |> Enum.map(fn line -> "." <> line <> "." end)
 
-    # matrix = input
-    # Horizontal buffer.
-    line_length = String.length(hd(input))
+    # Add horizontal buffer.
+    line_length = String.length(hd(matrix1))
     buffer_line = String.duplicate(".", line_length)
-    matrix = [buffer_line] ++ input ++ [buffer_line]
+    matrix1 = [buffer_line] ++ matrix1 ++ [buffer_line]
 
-    transformations = %{
+    transformations1 = %{
       left_to_right: [],
       right_to_left: [&mirror/1],
       top_to_bottom: [&transpose/1],
@@ -23,10 +26,10 @@ defmodule Day4 do
     }
 
     count_xmas =
-      transformations
+      transformations1
       |> Enum.map(fn {_, func} -> func end)
       |> Enum.reduce(0, fn transformation, acc1 ->
-        Enum.reduce(transformation, matrix, fn func, acc2 ->
+        Enum.reduce(transformation, matrix1, fn func, acc2 ->
           acc2 |> func.()
         end)
         |> count_occurences()
@@ -34,6 +37,62 @@ defmodule Day4 do
       end)
 
     IO.puts("part1: #{count_xmas}")
+
+    #
+    matrix2 =
+      input_matrix
+      |> Enum.map(fn line -> to_charlist(line) end)
+
+    count_x_mas =
+      matrix2
+      |> submatrices(3)
+      |> Enum.map(&is_x_mas/1)
+      |> Enum.count(fn x -> x == true end)
+
+    IO.puts("part2: #{count_x_mas}")
+  end
+
+  defp is_x_mas(matrix) do
+    # Conjunctive normal form
+    [
+      [
+        [&shift_rows/1, &transpose/1],
+        [&shift_rows/1, &transpose/1, &mirror/1]
+      ],
+      [
+        [&mirror/1, &shift_rows/1, &transpose/1],
+        [&mirror/1, &shift_rows/1, &transpose/1, &mirror/1]
+      ]
+    ]
+    |> Enum.all?(fn disjunctions ->
+      disjunctions
+      |> Enum.any?(fn disjunction_functions ->
+        disjunction_functions
+        |> Enum.reduce(matrix, fn func, acc ->
+          acc |> func.()
+        end)
+        |> hd()
+        |> Kernel.==("MAS")
+      end)
+    end)
+  end
+
+  # Get square submatrices from square matrix
+  defp submatrices(matrix, n) do
+    size = length(matrix)
+
+    if n > size,
+      do: throw("submatrix cannot be bigger than the matrix, matrix=#{size}, submatrix=#{n}")
+
+    for row <- 0..(size - n), col <- 0..(size - n) do
+      submatrix_at(matrix, row, col, n)
+    end
+  end
+
+  defp submatrix_at(matrix, row, col, n) do
+    for r <- row..(row + (n - 1)) do
+      Enum.slice(Enum.at(matrix, r), col..(col + (n - 1)))
+    end
   end
 
   defp count_occurences(matrix) do
