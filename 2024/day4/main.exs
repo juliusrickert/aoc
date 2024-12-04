@@ -12,7 +12,10 @@ defmodule Day4 do
     # Add horizontal buffer.
     line_length = String.length(hd(matrix1))
     buffer_line = String.duplicate(".", line_length)
-    matrix1 = [buffer_line] ++ matrix1 ++ [buffer_line]
+
+    matrix1 =
+      ([buffer_line] ++ matrix1 ++ [buffer_line])
+      |> Enum.map(&Kernel.to_charlist/1)
 
     transformations1 = %{
       left_to_right: [],
@@ -72,6 +75,7 @@ defmodule Day4 do
           acc |> func.()
         end)
         |> hd()
+        |> to_string()
         |> Kernel.==("MAS")
       end)
     end)
@@ -103,6 +107,7 @@ defmodule Day4 do
 
   defp count_occurences_in_line(input, search) do
     input
+    |> to_string()
     |> String.split(search)
     |> length()
     |> Kernel.-(1)
@@ -110,28 +115,23 @@ defmodule Day4 do
 
   defp transpose(matrix) do
     matrix
-    |> Enum.map(&Kernel.to_charlist/1)
     |> Enum.zip_with(&Function.identity/1)
-    |> Enum.map(&Kernel.to_string/1)
   end
 
   defp mirror(matrix) do
     matrix
-    |> Enum.map(&Kernel.to_charlist/1)
     |> Enum.map(&Enum.reverse/1)
-    |> Enum.map(&Kernel.to_string/1)
   end
 
   defp shift_rows(matrix) do
     matrix
-    |> Enum.map(&Kernel.to_charlist/1)
     |> Enum.with_index()
     |> Enum.map(&shift_row_n/1)
   end
 
   defp shift_row_n({row, n}) do
     {left, right} = Enum.split(row, n)
-    to_string(right) <> to_string(left)
+    right ++ left
   end
 end
 
