@@ -26,6 +26,15 @@ defmodule Day1 do
       |> Enum.sum()
 
     IO.puts("part1: #{total_distance}")
+
+    # part2
+    frequencies_right = Enum.frequencies(right)
+
+    similarity_score =
+      Enum.map(left, fn num -> num * (frequencies_right[num] || 0) end)
+      |> Enum.sum()
+
+    IO.puts("part2: #{similarity_score}")
   end
 end
 
