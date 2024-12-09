@@ -20,22 +20,41 @@ defmodule Day7 do
     end)
     |> Enum.sum()
     |> IO.inspect(label: "part1")
+
+    input
+    |> Enum.map(fn {result, numbers} ->
+      (calculation_possible({result, numbers}, true) && result) || 0
+    end)
+    |> Enum.sum()
+    |> IO.inspect(label: "part2")
   end
 
-  defp calculation_possible({result, numbers}) do
+  defp calculation_possible({result, numbers}, allow_concat? \\ false) do
     numbers
     |> Enum.reverse()
-    |> calculations()
+    |> calculations(allow_concat?)
     |> Enum.member?(result)
   end
 
-  defp calculations([]), do: []
-  defp calculations([last]), do: [last]
+  defp calculations([], _), do: []
+  defp calculations([last], _), do: [last]
 
-  defp calculations([first | rest]) do
-    calculations(rest)
-    |> Enum.map(fn result_rest -> [first * result_rest, first + result_rest] end)
+  defp calculations([first | rest], allow_concat?) do
+    calculations(rest, allow_concat?)
+    |> Enum.map(fn result_rest ->
+      [first * result_rest, first + result_rest] ++
+        ((allow_concat? &&
+            [reversed_concat([first, result_rest])]) || [])
+    end)
     |> List.flatten()
+  end
+
+  defp reversed_concat(list) do
+    list
+    |> Enum.reverse()
+    |> Enum.map(&Integer.to_string/1)
+    |> Enum.join()
+    |> String.to_integer()
   end
 end
 
